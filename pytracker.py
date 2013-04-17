@@ -43,7 +43,7 @@ def TrackerDatetimeToYMD(pdt):
 class Tracker(object):
     """Tracker API."""
 
-    def __init__(self, project_id, auth,
+    def __init__(self, project_id, token,
                              base_api_url=DEFAULT_BASE_API_URL):
         """Constructor.
 
@@ -61,7 +61,7 @@ class Tracker(object):
         cookies = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
 
-        self.token = auth.EstablishAuthToken(self.opener)
+        self.token = token
 
     def _Api(self, request, method, body=None):
         url = self.base_api_url + 'projects/%d/%s' % (self.project_id, request)
@@ -303,7 +303,8 @@ class XmlDocument(object):
 
         # Tracker emits datetime strings in UTC or GMT.
         # The [:-4] strips the timezone indicator
-        when = time.strptime(data[:-4], '%Y/%m/%d %H:%M:%S')
+        parsable_date=("{}".format(data[:-4])).strip()
+        when = time.strptime(parsable_date, '%Y/%m/%d %H:%M:%S')
         # calendar.timegm treats the tuple as GMT
         return calendar.timegm(when)
 
@@ -595,7 +596,7 @@ class Story(object):
                 story.appendChild(new_tag)
 
         # Labels are represented internally as sets.
-        if self.labels:
+        if self.labels is not None:
             labels_tag = doc.createElement('labels')
             labels_tag.appendChild(doc.createTextNode(self.GetLabelsAsString()))
             story.appendChild(labels_tag)
@@ -618,7 +619,6 @@ class Story(object):
             story.appendChild(created_at_tag)
 
         #don't update updated_at field as it will autoupdate
-
         return doc.toxml('utf-8')
 
 class Task(object):
