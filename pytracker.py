@@ -119,7 +119,19 @@ class Tracker(object):
             lst.append(Story.FromXml(el.toxml()))
         return lst
 
+    def _parse_story_id(self, story_id):
+      #story id can be an integer, an integer disguised as a string or
+      # "https://www.pivotaltracker.com/story/show/46440725" or
+      # "https://www.pivotaltracker.com/projects/227033#!/stories/44107229"
+        if story_id.__class__ == int:
+          return story_id
+        temp = re.findall("\d+", story_id)
+        if temp is not None:
+          return int(temp[-1])
+        raise ValueError("Can't get story_id from [{}]".format(story_id))
+
     def GetStory(self, story_id):
+        story_id = self._parse_story_id(story_id)
         story_xml = self._Api('stories/%d' % story_id, 'GET')
         return Story.FromXml(story_xml.decode())
 
