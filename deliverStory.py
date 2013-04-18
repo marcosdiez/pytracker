@@ -13,3 +13,4 @@ story = tracker.GetStory(sys.argv[1])
 story.SetCurrentState("delivered")
 tracker.UpdateStory(story)
 print("Story {} - {} marked as delivered.".format(story.GetStoryId(), story.GetName()))
+
