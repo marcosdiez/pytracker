@@ -6,7 +6,8 @@ import sys
 def deliver_story(story_id, tag=None):
 	tracker = Tracker(settings.project_id, settings.token)
 	story = tracker.GetStory(story_id)
-	story.SetCurrentState("delivered")
+	if story.GetStoryType() in [ "bug" , "feature" ]:
+		story.SetCurrentState("delivered")
 	story.RemoveLabel("test_ok")
 	if tag != None:
 		story.AddLabel(tag)
@@ -15,10 +16,8 @@ def deliver_story(story_id, tag=None):
 		extra_info = ""
 
 	tracker.UpdateStory(story)
-
-
-
-	print("Story {} - {} marked as delivered{}.".format(story.GetStoryId(), story.GetName(), extra_info))
+	print("Story {} - {} - {} marked as delivered{}.".format(story.GetStoryId(), story.GetStoryType(), story.GetName(), extra_info))
+	print("All labels: [{}]".format(story.GetLabelsAsString()))
 
 if len(sys.argv) < 3:
 	print("usage: {} TAG story_to_be_tagged_and_marked_as_delivered1 ... story_to_be_tagged_and_marked_as_deliveredN".format(sys.argv[0]))
