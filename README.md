@@ -11,7 +11,7 @@ marcos AT unitron DOT com DOT br
 Examples
 --------
 
-### Authenticate
+#### Authenticate
 
 ```python
 from pytracker import Tracker
@@ -23,13 +23,13 @@ def main(argv):
   tracker = Tracker(10101, auth)
 ```
 
-### Fetch a story
+#### Fetch a story
 
 ```python
   story = tracker.GetStory(684566)
 ```
 
-### Create a story
+#### Create a story
 
 ```python
 story = Story()
@@ -37,20 +37,20 @@ story.SetName('wake up')
 story.SetEstimate(1)
 tracker.AddNewStory(story)
 ```
-### Update an existing story
+#### Update an existing story
 
 ```python
 story = tracker.GetStory(684566)
 story.SetCurrentState('delivered')
 tracker.UpdateStory(story)
 ```
-### Add a comment
+#### Add a comment
 
 ```python
 tracker.AddComment(story_id, 'The customer is always right.')
 ```
 
-### Add a label
+#### Add a label
 
 ```python
 story = tracker.GetStory(44)
@@ -58,14 +58,14 @@ story.AddLabel("api")
 tracker.UpdateStory(story)
 ```
 
-### Query with filter
+#### Query with filter
 
 ```python
 stories = tracker.GetStories('type:release')
 ```
 
 See Tracker Search Help for query language.
-### Apply an update to multiple stories
+#### Apply an update to multiple stories
 
 ```python
 stories = tracker.GetStories('owner:"party cat"')
@@ -76,7 +76,7 @@ for story in stories:
   tracker.UpdateStoryById(story.GetStoryId(), changes)
 ```
 
-### Delete a story
+#### Delete a story
 
 ```python
 tracker.DeleteStory(44)
