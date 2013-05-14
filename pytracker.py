@@ -377,10 +377,17 @@ class Story(object):
     body.    For label operations on existing stories to be performed correctly,
     the Story must first be fetched from the server so that the existing labels
     are not lost.
+
+    This method has the problem of setting unecessary triggers. Every time we add
+    a label to a story, the person on 'owned_by' receives an email.
+    So we must use updated_fields as well.
+
     """
     # Fields that can be treated as strings when embedding in XML.
     UPDATE_FIELDS = ('story_type', 'current_state', 'name',
                                      'description', 'estimate', 'requested_by', 'owned_by')
+
+    updated_fields = []
 
     # Type: immutable ints.
     story_id = None
@@ -415,6 +422,10 @@ class Story(object):
 
     def __str__(self):
         return "Story(%r)" % self.__dict__
+
+    def _add_to_updated_fields(self, field_name):
+        if field_name not in self.updated_fields:
+            self.updated_fields.append(field_name)
 
     @staticmethod
     def FromXml(as_xml):
@@ -464,7 +475,11 @@ class Story(object):
         if labels is not None:
             story.AddLabelsFromString(labels)
 
+        story.ClearUpdatedFields()
         return story
+
+    def ClearUpdatedFields(self):
+        self.updated_fields = []
 
     # Immutable fields
     def GetStoryId(self):
@@ -481,6 +496,7 @@ class Story(object):
         return self.requested_by
 
     def SetRequestedBy(self, requested_by):
+        self._add_to_updated_fields("requested_by")
         self.requested_by = requested_by
 
     def GetOwnedBy(self):
@@ -499,6 +515,7 @@ class Story(object):
         self.tasks.append(task)
 
     def SetOwnedBy(self, owned_by):
+        self._add_to_updated_fields("owned_by")
         self.owned_by = owned_by
 
     def GetStoryType(self):
@@ -506,30 +523,35 @@ class Story(object):
 
     def SetStoryType(self, story_type):
         assert story_type in ['bug', 'chore', 'release', 'feature']
+        self._add_to_updated_fields("story_type")
         self.story_type = story_type
 
     def GetCurrentState(self):
         return self.current_state
 
     def SetCurrentState(self, current_state):
+        self._add_to_updated_fields("current_state")
         self.current_state = current_state
 
     def GetName(self):
         return self.name
 
     def SetName(self, name):
+        self._add_to_updated_fields("name")
         self.name = name
 
     def GetEstimate(self):
         return self.estimate
 
     def SetEstimate(self, estimate):
+        self._add_to_updated_fields("estimate")
         self.estimate = estimate
 
     def GetDescription(self):
         return self.description
 
     def SetDescription(self, description):
+        self._add_to_updated_fields("description")
         self.description = description
 
     def GetDeadline(self):
@@ -542,6 +564,7 @@ class Story(object):
         return self.created_at
 
     def SetCreatedAt(self, secs_since_epoch):
+        self._add_to_updated_fields("created_at")
         self.created_at = secs_since_epoch
 
     def GetUpdatedAt(self):
@@ -601,6 +624,8 @@ class Story(object):
         # Most fields are just simple strings or ints, so we treat them all in the
         # same way.
         for field_name in self.UPDATE_FIELDS:
+            if field_name not in self.updated_fields:
+                continue
             v = getattr(self, field_name)
             if v is not None:
                 new_tag = doc.createElement(field_name)
@@ -623,7 +648,7 @@ class Story(object):
             deadline_tag.appendChild(doc.createTextNode(formatted))
             story.appendChild(deadline_tag)
 
-        if self.created_at:
+        if self.created_at and "created_at" in self.updated_fields:
             formatted = time.strftime(DATE_FORMAT, time.gmtime(self.created_at))
             created_at_tag = doc.createElement('created_at')
             created_at_tag.setAttribute('type', 'datetime')
