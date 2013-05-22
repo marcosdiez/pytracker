@@ -10,7 +10,7 @@ def deliver_story(story_id, tag=None):
 		story.SetCurrentState("delivered")
 	story.RemoveLabel("test_ok")
 	if tag != None:
-		story.AddLabel(tag)
+		story.AddLabelsFromString(tag)
 		extra_info = " and tagged with [{}]".format(tag)
 	else:
 		extra_info = ""
