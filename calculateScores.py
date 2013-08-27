@@ -18,6 +18,8 @@ stories = {}
 
 def add_story(stories, story):
 	owner = story.GetOwnedBy()
+	if owner is None:
+		owner = "None"
 	story_type = story.GetStoryType()
 	story_points = 1
 	if story_type == "feature":

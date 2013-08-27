@@ -15,12 +15,16 @@ def deliver_story(story_id, tag=None):
 	else:
 		extra_info = ""
 
+	zendesk = story.GetZendeskKey()
+	if zendesk != None:
+		extra_info += " Zendesk: " + zendesk
+
 	tracker.UpdateStory(story)
 	print("Story {} - {} - {} marked as delivered{}.".format(story.GetStoryId(), story.GetStoryType(), story.GetName(), extra_info))
 	print("All labels: [{}]".format(story.GetLabelsAsString()))
 
 if len(sys.argv) < 3:
-	print("usage: {} TAG story_to_be_tagged_and_marked_as_delivered1 ... story_to_be_tagged_and_marked_as_deliveredN".format(sys.argv[0]))
+	print("usage: {} TAG story_to_be_tagged_and_marked_as_delivered ... story_to_be_tagged_and_marked_as_deliveredN".format(sys.argv[0]))
 	sys.exit(1)
 
 tag = sys.argv[1]

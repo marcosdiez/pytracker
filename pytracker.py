@@ -103,6 +103,28 @@ class Tracker(object):
     def GetReleaseStoriesXml(self):
         return self._ApiQueryStories('type:release')
 
+
+    def GetIterationStories(self, iteration=None, offset=None, limit=None):
+        iteration = ('/%s' % iteration) if iteration else ''
+        params = []
+        if offset:
+            params.append('offset=%s' % urllib.quote_plus(str(offset)))
+        if limit:
+            params.append('limit=%s' % urllib.quote_plus(str(limit)))
+
+        response = self._Api('iterations%s?%s' % (iteration, '&'.join(params)), 'GET')
+
+        # Hack: throw an exception if we didn't get valid XML.
+        xml.parsers.expat.ParserCreate('utf-8').Parse(response, True)
+
+        parsed = xml.dom.minidom.parseString(response)
+        els = parsed.getElementsByTagName('story')
+        lst = []
+        for el in els:
+            lst.append(Story.FromXml(el.toxml()))
+        return lst
+
+
     def GetStories(self, filt=None):
         """Fetch all Stories that satisfy the filter.
 
@@ -133,6 +155,7 @@ class Tracker(object):
     def GetStory(self, story_id):
         story_id = self._parse_story_id(story_id)
         story_xml = self._Api('stories/%d' % story_id, 'GET')
+
         return Story.FromXml(story_xml.decode())
 
     def AddComment(self, story_id, comment):
@@ -416,6 +439,8 @@ class Story(object):
     estimate = None
     jira_url = None
     jira_id = None
+    zendesk_url = None
+    zendesk_id = None
 
     # tasks are not mutable
     tasks = []
@@ -447,6 +472,9 @@ class Story(object):
         iteration = XmlDocument.GetDataFromTag(parsed, 'number')
         story.jira_url = XmlDocument.GetDataFromTag(parsed, 'jira_url')
         story.jira_id = XmlDocument.GetDataFromTag(parsed, 'jira_id')
+        story.zendesk_url = XmlDocument.GetDataFromTag(parsed, 'zendesk_url')
+        story.zendesk_id = XmlDocument.GetDataFromTag(parsed, 'zendesk_id')
+
         if iteration:
             story.iteration_number = int(iteration)
 
@@ -584,6 +612,18 @@ class Story(object):
 
     def GetJiraKey(self):
         return self.jira_id
+
+    def SetZendeskUrl(self, url):
+        self.zendesk_url = url
+
+    def GetZendeskUrl(self):
+        return self.zendesk_url
+
+    def SetZendeskKey(self, key):
+        self.zendesk_id = key
+
+    def GetZendeskKey(self):
+        return self.zendesk_id
 
     def AddLabel(self, label):
         """Adds a label (see caveat in class comment)."""
