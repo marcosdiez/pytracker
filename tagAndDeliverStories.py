@@ -20,7 +20,11 @@ def deliver_story(story_id, tag=None):
 		extra_info += " Zendesk: " + zendesk
 
 	tracker.UpdateStory(story)
-	print("Story {} - {} - {} marked as delivered{}.".format(story.GetStoryId(), story.GetStoryType(), story.GetName(), extra_info))
+	print("Story {} - {} - {} - {} marked as delivered{}.".format(
+		story.GetStoryId(),
+		story.GetStoryType(),
+		story.GetOwnedBy(),
+		story.GetName(), extra_info))
 	print("All labels: [{}]".format(story.GetLabelsAsString()))
 
 if len(sys.argv) < 3:
