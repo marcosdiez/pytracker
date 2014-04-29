@@ -27,6 +27,7 @@ import xml.dom
 from xml.dom import minidom
 import xml.parsers.expat
 import xml.sax.saxutils
+import json
 
 DEFAULT_BASE_API_URL = 'https://www.pivotaltracker.com/services/v3/'
 # Some fields specify UTC, some GMT?
@@ -410,6 +411,8 @@ class Story(object):
     UPDATE_FIELDS = ('story_type', 'current_state', 'name',
                                      'description', 'estimate', 'requested_by', 'owned_by')
 
+    CSV_FIELDS = ["story_id" , "labels", "story_type", "estimate", "zendesk_id", "name", "description"]
+
     updated_fields = []
 
     # Type: immutable ints.
@@ -451,6 +454,25 @@ class Story(object):
     def _add_to_updated_fields(self, field_name):
         if field_name not in self.updated_fields:
             self.updated_fields.append(field_name)
+
+
+    @staticmethod
+    def FromJson(as_json):
+        """Parses an JSON string into a Story.
+
+        Args:
+            as_json: a full JSON document from Story.ToJSon().
+        Returns:
+            Story()
+        """
+        parsed = json.loads(as_json)
+        parsed["labels"] = set(parsed["labels"]) # it comes as list in JSON
+        story = Story()
+        story.__dict__ = parsed
+        return story
+
+
+
 
     @staticmethod
     def FromXml(as_xml):
@@ -655,6 +677,53 @@ class Story(object):
         lst = list(self.labels)
         lst.sort()
         return ','.join(lst)
+
+
+    @staticmethod
+    def CsvHeader():
+        output = "{}".format(Story.CSV_FIELDS).replace("[","").replace("]","").replace(" ","").replace("'","")
+        return output
+
+    def ToCsv(self):
+        """Converts this Story to a CSV string."""
+
+        def csv_helper(the_dict, the_field):
+            if the_field not in the_dict:
+                return ""
+            value = the_dict[the_field]
+            if value is None:
+                return ""
+            if isinstance(value, set):
+                value = "{}".format(value)
+                #yes, I want to fallback to the previous case
+
+
+            if isinstance(value, str):
+                value = value.replace("\"","\"\"")
+                value = value.replace("\r","")
+                #value = value.replace("\n","\\n")
+                return "\"{}\"".format(value)
+            return value
+
+        output = ""
+        first = True
+        for one_field in self.CSV_FIELDS:
+            if first:
+                first = False
+                template = "{}{}"
+            else:
+                template = "{},{}"
+            output = template.format(output, csv_helper(self.__dict__, one_field))
+        return output
+
+    def ToJson(self):
+        """Converts this Story to a JSON string."""
+        labels_backup = self.labels
+        self.labels = list(self.labels)
+        output =  json.dumps(self.__dict__, sort_keys=True, indent=4)
+        self.labels = labels_backup
+        return output
+
 
     def ToXml(self):
         """Converts this Story to an XML string."""
