@@ -411,7 +411,7 @@ class Story(object):
     UPDATE_FIELDS = ('story_type', 'current_state', 'name',
                                      'description', 'estimate', 'requested_by', 'owned_by')
 
-    CSV_FIELDS = ["story_id" , "labels", "story_type", "estimate", "zendesk_id", "name", "description"]
+    CSV_FIELDS = ["story_id" , "labels", "story_type", "estimate", "zendesk_id", "name"]
 
     updated_fields = []
 
