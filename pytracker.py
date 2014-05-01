@@ -46,6 +46,13 @@ DEFAULT_BASE_API_URL = 'https://www.pivotaltracker.com/services/v3/'
 _TRACKER_DATETIME_RE = re.compile(r'^\d{4}/\d{2}/\d{2} .*(GMT|UTC)$')
 
 
+
+def _is_string(the_object):
+    if sys.version_info[0] == 2: #python2
+        return isinstance(the_object, basestring)
+    else:
+        return isinstance(the_object, str)
+
 def TrackerDatetimeToYMD(pdt):
     assert _TRACKER_DATETIME_RE.match(pdt)
     pdt = pdt.split()[0]
@@ -477,7 +484,11 @@ class Story(object):
         Returns:
             Story()
         """
-        parsed = json.loads(as_json)
+        if _is_string(as_json):
+            #we assume it's either a json string or a dictionary
+            parsed = json.loads(as_json)
+        else:
+            parsed = as_json
 
         #labels
         if "labels" in parsed:
@@ -847,8 +858,10 @@ class Task(object):
         Returns:
             Task()
         """
-        parsed = json.loads(as_json)
-        return Task.FromDictionary(parsed)
+        if _is_string(as_json):
+            #we assume it's either a json string or a dictionary
+            as_json = json.loads(as_json)
+        return Task.FromDictionary(as_json)
 
     def ToXml(self):
         doc = xml.dom.getDOMImplementation().createDocument(None, 'task', None)
