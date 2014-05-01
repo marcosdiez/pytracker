@@ -719,7 +719,8 @@ class Story(object):
     def ToJson(self):
         """Converts this Story to a JSON string."""
         labels_backup = self.labels
-        self.labels = list(self.labels)
+        if self.labels != None:
+            self.labels = list(self.labels)
         output =  json.dumps(self.__dict__, sort_keys=True, indent=4)
         self.labels = labels_backup
         return output
