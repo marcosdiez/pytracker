@@ -952,3 +952,73 @@ class Comment(object):
                 comments.append(comment)
 
         return comments
+
+class PivotalStatistics(object):
+    def __init__(self, css_table_title="", css_odd_row="", css_even_row=""):
+        self.the_stats = {}
+        self.css_table_title = css_table_title
+        self.css_odd_row = ""
+        self.css_even_row = ""
+        self._init_stats("total")
+
+    def _init_stats(self, owner):
+        self.the_stats[owner] = {}
+        self.the_stats[owner]["zendesk"] = 0
+        self.the_stats[owner]["feature"] = 0
+        self.the_stats[owner]["bug"] = 0
+        self.the_stats[owner]["chore"] = 0
+
+    def CalculateStatistics(self, the_story):
+        owner = the_story.GetOwnedBy()
+        if owner is None:
+            owner = "None"
+        story_type = the_story.GetStoryType()
+        story_points = 1
+        if story_type == "feature":
+                story_points = int(the_story.GetEstimate())
+
+        #print( "Story: {} - owner: {} type: {} points: {}".format(story.GetStoryId(),owner,story_type,story_points))
+
+        if owner not in self.the_stats:
+            self._init_stats(owner)
+
+        if the_story.GetZendeskKey() != None:
+            self.the_stats[owner]["zendesk"] += 1
+            self.the_stats["total"]["zendesk"] += 1
+
+        self.the_stats[owner][story_type] += story_points
+        self.the_stats["total"][story_type] += story_points
+
+    def GetRawStatistics(self):
+        return self.the_stats
+
+    def _render_stats_helper(self, person, css):
+        stringmask = "<tr class='{}''><th>{}<td>{}<td>{}<td>{}<td>{}<td>{}\n"
+        person_stat = self.the_stats[person]
+        total = person_stat["feature"] + person_stat["bug"] + person_stat["chore"]
+        self.output += stringmask.format(css, person, person_stat["zendesk"], person_stat["feature"], person_stat["bug"], person_stat["chore"], total)
+
+    def RenderStatistics(self):
+        self.output = """
+        <table class="{}">
+        <tr class="{}">
+        <th>Author
+        <th>Zendesk
+        <th>Feature
+        <th>Bugs
+        <th>Chores
+        <th>Total
+        """.format(self.css_table_title, self.css_odd_row)
+        counter = 0
+        for person in sorted(self.the_stats.keys()):
+            if person != "total":
+                if counter % 2 == 0:
+                    tr_class = self.css_even_row
+                else:
+                    tr_class = self.css_odd_row
+                counter += 1
+                self._render_stats_helper(person, tr_class)
+
+        self._render_stats_helper("total", "")
+        self.output +="</table><br>Disclaimer: ZenDesk tickets are Features/Bugs/Chores, so they are not added to the total."
+        return self.output
