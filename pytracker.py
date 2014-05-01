@@ -466,7 +466,8 @@ class Story(object):
             Story()
         """
         parsed = json.loads(as_json)
-        parsed["labels"] = set(parsed["labels"]) # it comes as list in JSON
+        if "labels" in parsed:
+            parsed["labels"] = set(parsed["labels"]) # it comes as list in JSON
         story = Story()
         story.__dict__ = parsed
         return story
