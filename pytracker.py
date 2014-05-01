@@ -22,7 +22,7 @@ __author__ = 'dcoker@google.com (Doug Coker)'
 import sys
 if sys.version_info[0] == 2: #python2
     import cookielib as cookiejar
-    import urllib as parseof
+    import urllib as parse
     import urllib2 as request
     import urllib2 as error
 else: #python3
@@ -514,7 +514,11 @@ class Story(object):
         Returns:
             Story()
         """
-        parsed = minidom.parseString(as_xml)
+        try:
+            parsed = minidom.parseString(as_xml)
+        except:
+            #this is just necessary for python2
+            parsed = minidom.parseString(as_xml.encode('utf-8'))
         story = Story()
         story.story_id = int(parsed.getElementsByTagName('id')[0].firstChild.data)
         story.url = parsed.getElementsByTagName('url')[0].firstChild.data

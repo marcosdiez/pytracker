@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals
 import settings
 from pytracker import Tracker, Story
 import sys
+import codecs
 
 if len(sys.argv) < 3:
     print("usage: {} [label] [outputfile.json]\nexample: {} ui outputfile.json".format(sys.argv[0],sys.argv[0]))
@@ -12,7 +14,8 @@ file_name = sys.argv[2]
 
 tracker = Tracker(settings.project_id, settings.token)
 num_stories = 0
-with open(file_name, 'w', encoding='utf-8') as output:
+
+with codecs.open(file_name, "w", "utf-8") as output:
     print("Fetching stories...")
     the_stories = tracker.GetStories("label:{} includedone:true".format(label))
     output.write("[\n")
