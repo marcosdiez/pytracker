@@ -13,16 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import unicode_literals
 
 """pytracker is a Python wrapper around the Tracker API."""
 
 __author__ = 'dcoker@google.com (Doug Coker)'
 
+import sys
+if sys.version_info[0] == 2: #python2
+    import cookielib as cookiejar
+    import urllib as parseof
+    import urllib2 as request
+    import urllib2 as error
+else: #python3
+    from http import cookiejar
+    from urllib import request
+    from urllib import error
+    from urllib import parse
+
 import calendar
-import http.cookiejar
 import re
 import time
-import urllib.request, urllib.parse, urllib.error
+
 import xml.dom
 from xml.dom import minidom
 import xml.parsers.expat
@@ -59,28 +71,28 @@ class Tracker(object):
         self.project_id = project_id
         self.base_api_url = base_api_url
 
-        cookies = http.cookiejar.CookieJar()
-        self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+        cookies = cookiejar.CookieJar()
+        self.opener = request.build_opener(request.HTTPCookieProcessor(cookies))
 
         self.token = token
 
-    def _Api(self, request, method, body=None):
-        url = self.base_api_url + 'projects/%d/%s' % (self.project_id, request)
+    def _Api(self, the_request, method, body=None):
+        url = self.base_api_url + 'projects/%d/%s' % (self.project_id, the_request)
         headers = {}
         if self.token:
             headers['X-TrackerToken'] = self.token
 
         if not body and method == 'GET':
             # Do a GET
-            req = urllib.request.Request(url, None, headers)
+            req = request.Request(url, None, headers)
         else:
             headers['Content-Type'] = 'application/xml'
-            req = urllib.request.Request(url, body, headers)
+            req = request.Request(url, body, headers)
             req.get_method = lambda: method
 
         try:
             res = self.opener.open(req)
-        except urllib.error.HTTPError as e:
+        except error.HTTPError as e:
             message = "HTTP Status Code: %s\nMessage: %s\nURL: %s\nError: %s" % (e.code, e.msg, e.geturl(), e.read())
             raise TrackerApiException(message)
 
@@ -88,7 +100,7 @@ class Tracker(object):
 
     def _ApiQueryStories(self, query=None):
         if query:
-            output = self._Api('stories?filter=' + urllib.parse.quote_plus(query),
+            output = self._Api('stories?filter=' + parse.quote_plus(query),
                                                  'GET')
         else:
             output = self._Api('stories', 'GET')
@@ -109,9 +121,9 @@ class Tracker(object):
         iteration = ('/%s' % iteration) if iteration else ''
         params = []
         if offset:
-            params.append('offset=%s' % urllib.quote_plus(str(offset)))
+            params.append('offset=%s' % parse.quote_plus(str(offset)))
         if limit:
-            params.append('limit=%s' % urllib.quote_plus(str(limit)))
+            params.append('limit=%s' % parse.quote_plus(str(limit)))
 
         response = self._Api('iterations%s?%s' % (iteration, '&'.join(params)), 'GET')
 
@@ -272,11 +284,11 @@ class HostedTrackerAuth(TrackerAuth):
     def EstablishAuthToken(self, opener):
         """Returns the first auth token returned by /services/tokens/active."""
         url = 'https://www.pivotaltracker.com/services/v3/tokens/active'
-        data = urllib.parse.urlencode((('username', self.username),
+        data = parse.urlencode((('username', self.username),
                                                          ('password', self.password)))
         try:
             req = opener.open(url, data.encode())
-        except urllib.error.HTTPError as e:
+        except error.HTTPError as e:
             if e.code == 404:
                 raise NoTokensAvailableException(
                         'Did you create any?    Check https://www.pivotaltracker.com/profile')
