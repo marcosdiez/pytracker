@@ -11,4 +11,20 @@ tracker = Tracker(settings.project_id, settings.token)
 
 for story_id in sys.argv[1:]:
     story = tracker.GetStory(story_id)
+    # print("--------------")
+    # print(story.__dict__)
+    # print("--------------")
+    # tasks = story.GetTasks()
+    # for task in tasks:
+    #     print("--")
+    #     print(task)
+    #     print("--")
+    #     print(task.__dict__)
+    #     print("--")
+    #     print(task.ToXml())
+    #     print("--")
+    #     print(task.ToJson())
+
+
+    # print("--------------")
     print(story.ToJson())

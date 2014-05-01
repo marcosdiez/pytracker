@@ -478,14 +478,21 @@ class Story(object):
             Story()
         """
         parsed = json.loads(as_json)
+
+        #labels
         if "labels" in parsed:
             parsed["labels"] = set(parsed["labels"]) # it comes as list in JSON
+
+        if "tasks" in parsed:
+            json_tasks = parsed["tasks"]
+            parsed["tasks"] = []
+            for json_task in json_tasks:
+                the_task = Task.FromDictionary(json_task)
+                parsed["tasks"].append(the_task)
+
         story = Story()
         story.__dict__ = parsed
         return story
-
-
-
 
     @staticmethod
     def FromXml(as_xml):
@@ -731,11 +738,21 @@ class Story(object):
 
     def ToJson(self):
         """Converts this Story to a JSON string."""
+        #labels
         labels_backup = self.labels
         if self.labels != None:
             self.labels = list(self.labels)
+        #tasks
+        tasks_backup = self.tasks
+        self.tasks = []
+        for task in tasks_backup:
+            self.tasks.append(task.ToDictionary())
+
+        #done
         output =  json.dumps(self.__dict__, sort_keys=True, indent=4)
+
         self.labels = labels_backup
+        self.tasks = tasks_backup
         return output
 
 
@@ -806,6 +823,32 @@ class Task(object):
         task.descriptor['complete'] = dictionary['complete']
         task.descriptor['id'] = dictionary['id']
         return task
+
+    def ToDictionary(self):
+        return self.__dict__
+
+    @staticmethod
+    def FromDictionary(as_dictionary):
+        task = Task()
+        task.__dict__ = as_dictionary
+        return task
+
+    def ToJson(self):
+        """Converts this Story to a JSON string."""
+        output =  json.dumps(self.ToDictionary(), sort_keys=True, indent=4)
+        return output
+
+    @staticmethod
+    def FromJson(as_json):
+        """Parses an JSON string into a Task.
+
+        Args:
+            as_json: a full JSON document from task.ToJSon().
+        Returns:
+            Task()
+        """
+        parsed = json.loads(as_json)
+        return Task.FromDictionary(parsed)
 
     def ToXml(self):
         doc = xml.dom.getDOMImplementation().createDocument(None, 'task', None)
