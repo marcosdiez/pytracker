@@ -969,6 +969,9 @@ class PivotalStatistics(object):
         self.the_stats[owner]["chore"] = 0
 
     def CalculateStatistics(self, the_story):
+        if the_story.GetCurrentState() != "accepted":
+            return
+
         owner = the_story.GetOwnedBy()
         if owner is None:
             owner = "None"
@@ -1020,5 +1023,5 @@ class PivotalStatistics(object):
                 self._render_stats_helper(person, tr_class)
 
         self._render_stats_helper("total", "")
-        self.output +="</table><br>Disclaimer: ZenDesk tickets are Features/Bugs/Chores, so they are not added to the total."
+        self.output +="</table><br>Disclaimer: ZenDesk tickets are Features/Bugs/Chores, so they are not added to the total. Only accepted stories are considered."
         return self.output
