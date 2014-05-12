@@ -474,6 +474,42 @@ class Story(object):
         if field_name not in self.updated_fields:
             self.updated_fields.append(field_name)
 
+    @staticmethod
+    def FromCsv(row):
+        "Receives a Story from Pivotal Tracker's exported CSV and converts into a Story Object"
+
+        def parse_datetime(parsable_date):
+            if parsable_date in (None, ""):
+                return None
+            when = time.strptime(parsable_date, '%b %d, %Y')
+            # calendar.timegm treats the tuple as GMT
+            output = calendar.timegm(when)
+            return output
+
+        # these are the expected columns
+        #   0     1        2         3            4                  5                6             7           8                9             10             11          12              13             14     15            16             17          18          19
+        # ['Id', 'Story', 'Labels', 'Iteration', 'Iteration Start', 'Iteration End', 'Story Type', 'Estimate', 'Current State', 'Created at', 'Accepted at', 'Deadline', 'Requested By', 'Description', 'URL', 'Zendesk ID', 'Integration', 'Owned By', 'Owned By', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Comment', 'Task', 'Task Status', 'Task', 'Task Status']
+
+        the_story_dict = {}
+        the_story_dict["story_id"] = int(row[0])
+        the_story_dict["iteration_number"] = row[3]
+        the_story_dict["created_at"] = parse_datetime(row[9])
+        the_story_dict["updated_at"] = parse_datetime(row[10])
+        the_story_dict["deadline"] = parse_datetime(row[11])
+        the_story_dict["labels"] = row[2].strip().replace(" ","").split(",")
+        if "" in the_story_dict["labels"]:
+            the_story_dict["labels"].remove("")
+
+        the_story_dict["url"] = row[14]
+        the_story_dict["requested_by"] = row[12]
+        the_story_dict["owned_by"] = row[17]
+        the_story_dict["story_type"] = row[6]
+        the_story_dict["current_state"] = row[8]
+        the_story_dict["description"] = row[13]
+        the_story_dict["name"] = row[1]
+        the_story_dict["estimate"] = row[7]
+        the_story_dict["zendesk_id"] = row[15]
+        return Story.FromJson(the_story_dict)
 
     @staticmethod
     def FromJson(as_json):
@@ -770,7 +806,6 @@ class Story(object):
         self.tasks = tasks_backup
         return output
 
-
     def ToXml(self):
         """Converts this Story to an XML string."""
         doc = xml.dom.getDOMImplementation().createDocument(None, 'story', None)
@@ -971,11 +1006,13 @@ class PivotalStatistics(object):
     def CalculateStatistics(self, the_story):
         if the_story.GetCurrentState() != "accepted":
             return
+        story_type = the_story.GetStoryType()
+        if story_type == "release":
+            return
 
         owner = the_story.GetOwnedBy()
         if owner is None:
             owner = "None"
-        story_type = the_story.GetStoryType()
         story_points = 1
         if story_type == "feature":
                 story_points = int(the_story.GetEstimate())
