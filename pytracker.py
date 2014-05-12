@@ -510,6 +510,11 @@ class Story(object):
         the_story_dict["name"] = row[1]
         the_story_dict["estimate"] = row[7]
         the_story_dict["zendesk_id"] = row[15]
+
+        for key in the_story_dict.keys():
+            if the_story_dict[key] == "":
+                the_story_dict[key] = None
+
         return Story.FromJson(the_story_dict)
 
     @staticmethod
@@ -1048,16 +1053,13 @@ class PivotalStatistics(object):
             return
 
         owner = the_story.GetOwnedBy()
-        if owner is None:
+        if owner in (None, ""):
             owner = "None"
 
         if owner not in self.the_stats:
             self._init_stats(owner)
 
-        if the_story.GetZendeskKey() != None:
-            self.the_stats[owner]["zendesk"] += 1
-            self.the_stats["total"]["zendesk"] += 1
-
+        story_points = 1
         self.the_stats[owner][story_type] += 1
         self.the_stats["total"][story_type] += 1
 
@@ -1065,6 +1067,11 @@ class PivotalStatistics(object):
             story_points = int(the_story.GetEstimate())
             self.the_stats[owner]["feature_points"] += story_points
             self.the_stats["total"]["feature_points"] += story_points
+
+        if the_story.GetZendeskKey() != None:
+            self.the_stats[owner]["zendesk"] += 1
+            self.the_stats["total"]["zendesk"] += 1
+
 
     def GetRawStatistics(self):
         return self.the_stats
