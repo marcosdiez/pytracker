@@ -875,19 +875,16 @@ class Task(object):
     @staticmethod
     def FromDictionary(dictionary):
         task = Task()
-        task.descriptor['description'] = dictionary['description']
-        task.descriptor['complete'] = dictionary['complete']
-        task.descriptor['id'] = dictionary['id']
+        if "description" in dictionary and "complete" in dictionary and "id" in dictionary:
+            task.descriptor['description'] = dictionary['description']
+            task.descriptor['complete'] = dictionary['complete']
+            task.descriptor['id'] = dictionary['id']
+        else:
+            task.__dict__ = as_dictionary
         return task
 
     def ToDictionary(self):
         return self.__dict__
-
-    @staticmethod
-    def FromDictionary(as_dictionary):
-        task = Task()
-        task.__dict__ = as_dictionary
-        return task
 
     def ToJson(self):
         """Converts this Story to a JSON string."""
@@ -925,7 +922,7 @@ class Task(object):
 
     def GetSubPath(self):
         path = self.TASK_PATH
-        if self.descriptor['id'] is None:
+        if 'id' not in self.descriptor or self.descriptor['id'] is None:
             return path
         else:
             return path + "/" + str(self.descriptor['id'])

@@ -17,7 +17,7 @@ def main():
 		story = tracker.GetStory(story_id)
 		story.AddLabel(label)
 		tracker.UpdateStory(story)
-		print(story.GetName())
+		print("{}-{}", story.GetStoryId(), story.GetName())
 
 if __name__ == "__main__":
 	main()
