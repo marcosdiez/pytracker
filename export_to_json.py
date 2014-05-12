@@ -17,7 +17,7 @@ num_stories = 0
 
 with codecs.open(file_name, "w", "utf-8") as output:
     print("Fetching stories...")
-    the_stories = tracker.GetStories("label:{} includedone:true".format(label))
+    the_stories = tracker.GetStories("includedone:true".format(label))
     output.write("[\n")
     first_time = True
     for a_story in the_stories:
