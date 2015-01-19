@@ -886,6 +886,12 @@ class Task(object):
     def ToDictionary(self):
         return self.__dict__
 
+    @staticmethod
+    def FromDictionary(as_dictionary):
+        task = Task()
+        task.__dict__ = as_dictionary
+        return task
+
     def ToJson(self):
         """Converts this Story to a JSON string."""
         output =  json.dumps(self.ToDictionary(), sort_keys=True, indent=4)
