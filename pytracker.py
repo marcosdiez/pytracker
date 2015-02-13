@@ -177,7 +177,7 @@ class Tracker(object):
         story_id = self._parse_story_id(story_id)
         story_xml = self._Api('stories/%d' % story_id, 'GET')
 
-        return Story.FromXml(story_xml.decode())
+        return Story.FromXml(story_xml.decode("utf-8"))
 
     def AddComment(self, story_id, comment):
         if story_id is None:
@@ -241,7 +241,7 @@ class Tracker(object):
         res = self._Api('stories/%d' % story.GetStoryId(), 'PUT', story_xml)
 
         if len(story.GetTasks()) < 1:
-            return Story.FromXml(res.decode())
+            return Story.FromXml(res.decode("utf-8"))
 
         for task in story.GetTasks():
             path = 'stories/%d' % story.GetStoryId()
