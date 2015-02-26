@@ -880,17 +880,11 @@ class Task(object):
             task.descriptor['complete'] = dictionary['complete']
             task.descriptor['id'] = dictionary['id']
         else:
-            task.__dict__ = as_dictionary
+            task.__dict__ = dictionary
         return task
 
     def ToDictionary(self):
         return self.__dict__
-
-    @staticmethod
-    def FromDictionary(as_dictionary):
-        task = Task()
-        task.__dict__ = as_dictionary
-        return task
 
     def ToJson(self):
         """Converts this Story to a JSON string."""
